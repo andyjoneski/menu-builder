@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jQuery UI Widget - Default functionality</title>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="/resources/demos/style.css">
+  <style>
+  .custom-colorize {
+    font-size: 20px;
+    position: relative;
+    width: 75px;
+    height: 75px;
+  }
+  .custom-colorize-changer {
+    font-size: 10px;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+  }
+  </style>
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+  $( function() {
+    // the widget definition, where "custom" is the namespace,
+    // "colorize" the widget name
+    $.widget( "mobile.menu", {
+        options: {
+            // Used to store on the element's data attribute and event namespace
+            identifier: 'melodeon',
+            hasChildrenClass: 'has-child',
+            hasActiveChildrenClass: 'has-active-child',
+            navItemHiddenClass: 'item-hidden',
+
+            activeClass: 'is-active',
+            openDefault: true,
+            openDefaultSelector: '.default',
+
+            navContainerSelector: '.item-list',
+            navItemSelector: '.item-list-item',
+            triggerSelector: 'a',
+            slideSpeed: 350
+        },
+
+        _create: function(){
+            this._super();
+            this._setupChildren();
+        },
+
+        _init: function(){
+            if(this.options.openDefault) {
+                //this.activateNav($(this.options.openDefaultSelector, this.element));
+            }
+
+            this._addEvents()
+        },
+
+        _destroy: function(){
+            this._removeDisplayStyles();
+        },
+
+        _addEvents: function(){
+            var self = this;
+
+            var events = {};
+
+            events["click " + this._getTriggerSelector()] = function(ev){
+                ev.preventDefault();
+                this.activateNav($(ev.target));
+            };
+
+            this._on(this.element, events);
+        },
+
+        _setupChildren: function(){
+            // If the containing navItemSelector has children
+            var self = this;
+
+            $(this.options.navItemSelector, this.element).each(function(){
+                var $this = $(this);
+
+                if($(self.options.navContainerSelector, $this).size()){
+                    $this.addClass(self.options.hasChildrenClass);
+                }
+            });
+
+        },
+
+        _getTriggerSelector: function(){
+            return this.options.navItemSelector + "." + this.options.hasChildrenClass + ' > ' + this.options.triggerSelector;
+        },
+
+
+        _isItemActive: function($item){
+            return $item.hasClass(this.options.activeClass);
+        },
+
+        _removeDisplayStyles: function(){
+            this._deactivateAllItems();
+
+            /*$(this.options.navItemSelector, this.element)
+                .removeClass(this.options.navItemHiddenClass)
+                .attr('style', '');*/
+        },
+
+       _deactivateAllItems: function(){
+            // Remove active class
+            $(this.options.navItemSelector, this.element)
+                .stop()
+                .removeClass(this.options.activeClass)
+                .removeClass(this.options.hasActiveChildrenClass);
+                console.log('here');
+        },
+
+        _getAllVisibleNavItems: function(){
+            console.log($(this.options.navItemSelector + ':not(.' + this.options.navItemHiddenClass + ')', this.element));
+            return $(this.options.navItemSelector + ':not(.' + this.options.navItemHiddenClass + ')', this.element);
+        },
+
+        _fireEvent: function(eventName, event, data){
+            data = data || {};
+
+            this._trigger(eventName, event, $.extend({}, data, {
+                element: this.element
+            }));
+
+            var elementData = $.extend({}, data);
+            elementData[this.options.identifier] = this;
+
+            this.element.trigger(eventName, elementData);
+        },
+
+        activateNav: function($item){
+            var self = this;
+
+            if(this._isItemActive($item.closest(this.options.navItemSelector))){
+                return;
+            }
+
+            // Use this to hook into
+            this._fireEvent('activate')
+
+            // Remove active class
+            this._deactivateAllItems();
+
+            var $navSiblingChildren = $item.siblings(this.options.navContainerSelector)
+                .children(this.options.navItemSelector);
+
+            var $itemContainer = $item.closest(this.options.navItemSelector);
+
+            // Add active class, slide all children out
+            $itemContainer.addClass(this.options.activeClass);
+            //$navSiblingChildren.slideDown(this.options.slideSpeed);
+            $navSiblingChildren.removeClass(this.options.navItemHiddenClass);
+
+            $itemContainer.parents(this.options.navItemSelector).addClass(this.options.hasActiveChildrenClass);
+
+            // Only animate the items which currently don't have the hide class on them
+            this._getAllVisibleNavItems().each(function(){
+                var $this = $(this);
+                var $parent = $this.parent().closest(self.options.navItemSelector);
+
+                if($parent.size() && $parent.hasClass(self.options.activeClass) === false && $this.hasClass(self.options.activeClass) === false && $this.hasClass(self.options.hasActiveChildrenClass) === false){
+                    //$this.addClass(self.options.navItemHiddenClass);
+                    //$this.slideUp(self.options.slideSpeed);
+                }
+            });
+        }
+
+    });
+    $('nav').menu();
+
+  });
+  </script>
+</head>
+<body>
+
+<nav class="nav">
+    <ul class="js-menu item-list">
+          <li class="item-list-item">
+              <a href="#" class="js-melodeon-default">All departments</a>
+              <ul class="item-list">
+                  <li class="item-list-item">
+                      <a href="#">Create</a>
+                      <ul class="item-list">
+                          <li class="item-list-item"><a href="#">Hot Products</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Weddings</a></li>
+                                  <li class="item-list-item"><a href="#">Fathers Day</a></li>
+                                  <li class="item-list-item"><a href="#">Mugs</a></li>
+                                  <li class="item-list-item"><a href="#">T-Shirts</a></li>
+                                  <li class="item-list-item"><a href="#">Stags &amp; Hens</a></li>
+                                  <li class="item-list-item"><a href="#">Labels</a></li>
+                                  <li class="item-list-item"><a href="#">Office Mugs</a></li>
+                                  <li class="item-list-item"><a href="#">View all</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Women</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Men</a></li>
+                                  <li class="item-list-item"><a href="#">Women</a></li>
+                                  <li class="item-list-item"><a href="#">Kids</a></li>
+                                  <li class="item-list-item"><a href="#">Babies</a></li>
+                                  <li class="item-list-item"><a href="#">Engraved</a></li>
+                                  <li class="item-list-item"><a href="#">Home &amp; Kitchen</a></li>
+                                  <li class="item-list-item"><a href="#">Art &amp; Posters</a></li>
+                                  <li class="item-list-item"><a href="#">Stationery</a></li>
+                                  <li class="item-list-item"><a href="#">Bags</a></li>
+                                  <li class="item-list-item"><a href="#">Accessories</a></li>
+                                  <li class="item-list-item"><a href="#">Toys</a></li>
+                                  <li class="item-list-item"><a href="#">Workwear</a></li>
+                                  <li class="item-list-item"><a href="#">View all</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Men</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Gifts for Her</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Him</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Kids</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Babies</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Teens</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Grandparents</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Couples</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Teachers</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Pets</a></li>
+                                  <li class="item-list-item"><a href="#">View all</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Kids</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Anniversary Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Birthday Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Christening Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Engagement Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Father's Day Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">New Baby Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Retirement Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Wedding Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Back to School Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Baby Shower Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Christmas Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Easter Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Exam Success Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">View all</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Babies</a></li>
+                          <li class="item-list-item"><a href="#">Engraved</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Plumbers</a></li>
+                                  <li class="item-list-item"><a href="#">Builders</a></li>
+                                  <li class="item-list-item"><a href="#">Carpenters</a></li>
+                                  <li class="item-list-item"><a href="#">Electricians</a>
+                                      <ul class="item-list">
+                                          <li class="item-list-item"><a href="#">Bags</a>
+                                              <ul class="item-list">
+                                                  <li class="item-list-item"><a href="#">Stag Do</a></li>
+                                                  <li class="item-list-item"><a href="#">Hen Do</a></li>
+                                                  <li class="item-list-item"><a href="#">Festival &amp; Music</a></li>
+                                                  <li class="item-list-item"><a href="#">Birthday Parties</a></li>
+                                                  <li class="item-list-item"><a href="#">Childrens Parties</a></li>
+                                                  <li class="item-list-item"><a href="#">Holiday &amp; Beach</a></li>
+                                                  <li class="item-list-item"><a href="#">View all</a></li>
+                                              </ul>
+                                          </li>
+                                          <li class="item-list-item"><a href="#">Accessories</a>
+                                              <ul class="item-list">
+                                                  <li class="item-list-item"><a href="#">Stag Do</a></li>
+                                                  <li class="item-list-item"><a href="#">Hen Do</a></li>
+                                                  <li class="item-list-item"><a href="#">Festival &amp; Music</a></li>
+                                                  <li class="item-list-item"><a href="#">Birthday Parties</a></li>
+                                                  <li class="item-list-item"><a href="#">Childrens Parties</a></li>
+                                                  <li class="item-list-item"><a href="#">Holiday &amp; Beach</a></li>
+                                                  <li class="item-list-item"><a href="#">View all</a></li>
+                                              </ul>
+                                          </li>
+                                          <li class="item-list-item"><a href="#">Toys</a>
+                                              <ul class="item-list">
+                                                  <li class="item-list-item"><a href="#">Stag Do</a></li>
+                                                  <li class="item-list-item"><a href="#">Hen Do</a></li>
+                                                  <li class="item-list-item"><a href="#">Festival &amp; Music</a></li>
+                                                  <li class="item-list-item"><a href="#">Birthday Parties</a></li>
+                                                  <li class="item-list-item"><a href="#">Childrens Parties</a></li>
+                                                  <li class="item-list-item"><a href="#">Holiday &amp; Beach</a></li>
+                                                  <li class="item-list-item"><a href="#">View all</a></li>
+                                              </ul>
+                                          </li>
+                                          <li class="item-list-item"><a href="#">Workwear</a></li>
+                                      </ul>
+                                  </li>
+                                  <li class="item-list-item"><a href="#">Offices</a></li>
+                                  <li class="item-list-item"><a href="#">Retail</a></li>
+                                  <li class="item-list-item"><a href="#">View all</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Home &amp; Kitchen</a></li>
+                          <li class="item-list-item"><a href="#">Engraved</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Stag Do</a></li>
+                                  <li class="item-list-item"><a href="#">Hen Do</a></li>
+                                  <li class="item-list-item"><a href="#">Festival &amp; Music</a></li>
+                                  <li class="item-list-item"><a href="#">Birthday Parties</a></li>
+                                  <li class="item-list-item"><a href="#">Childrens Parties</a></li>
+                                  <li class="item-list-item"><a href="#">Holiday &amp; Beach</a></li>
+                                  <li class="item-list-item"><a href="#">View all</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Art &amp; Posters</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Stag Do</a></li>
+                                  <li class="item-list-item"><a href="#">Hen Do</a></li>
+                                  <li class="item-list-item"><a href="#">Festival &amp; Music</a></li>
+                                  <li class="item-list-item"><a href="#">Birthday Parties</a></li>
+                                  <li class="item-list-item"><a href="#">Childrens Parties</a></li>
+                                  <li class="item-list-item"><a href="#">Holiday &amp; Beach</a></li>
+                                  <li class="item-list-item"><a href="#">View all</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Stationery</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Stag Do</a></li>
+                                  <li class="item-list-item"><a href="#">Hen Do</a></li>
+                                  <li class="item-list-item"><a href="#">Festival &amp; Music</a></li>
+                                  <li class="item-list-item"><a href="#">Birthday Parties</a></li>
+                                  <li class="item-list-item"><a href="#">Childrens Parties</a></li>
+                                  <li class="item-list-item"><a href="#">Holiday &amp; Beach</a></li>
+                                  <li class="item-list-item"><a href="#">View all</a></li>
+                              </ul>
+                          </li>
+                      </ul>
+                  </li>
+
+                  <li class="item-list-item">
+                      <a href="#">Shop</a>
+                      <ul class="item-list">
+                          <li class="item-list-item"><a href="#">What's Hot</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Weddings</a></li>
+                                  <li class="item-list-item"><a href="#">Fathers Day</a></li>
+                                  <li class="item-list-item"><a href="#">Mugs</a></li>
+                                  <li class="item-list-item"><a href="#">T-Shirts</a></li>
+                                  <li class="item-list-item"><a href="#">Stags &amp; Hens</a></li>
+                                  <li class="item-list-item"><a href="#">Labels</a></li>
+                                  <li class="item-list-item"><a href="#">Office Mugs</a></li>
+                                  <li class="item-list-item"><a href="#">View all</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Products</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Men</a></li>
+                                  <li class="item-list-item"><a href="#">Women</a></li>
+                                  <li class="item-list-item"><a href="#">Kids</a></li>
+                                  <li class="item-list-item"><a href="#">Babies</a></li>
+                                  <li class="item-list-item"><a href="#">Engraved</a></li>
+                                  <li class="item-list-item"><a href="#">Home &amp; Kitchen</a></li>
+                                  <li class="item-list-item"><a href="#">Art &amp; Posters</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Recipient</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Gifts for Her</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Him</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Kids</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Babies</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Teens</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Grandparents</a></li>
+                                  <li class="item-list-item"><a href="#">Gifts for Couples</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Occasions</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Anniversary Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Birthday Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Christening Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Engagement Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Father's Day Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">New Baby Gifts</a></li>
+                                  <li class="item-list-item"><a href="#">Retirement Gifts</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Events</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Stag Do</a></li>
+                                  <li class="item-list-item"><a href="#">Hen Do</a></li>
+                                  <li class="item-list-item"><a href="#">Festival &amp; Music</a></li>
+                                  <li class="item-list-item"><a href="#">Birthday Parties</a></li>
+                                  <li class="item-list-item"><a href="#">Childrens Parties</a></li>
+                                  <li class="item-list-item"><a href="#">Holiday &amp; Beach</a></li>
+                                  <li class="item-list-item"><a href="#">View all</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Workwear</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Plumbers</a></li>
+                                  <li class="item-list-item"><a href="#">Builders</a></li>
+                                  <li class="item-list-item"><a href="#">Carpenters</a></li>
+                                  <li class="item-list-item"><a href="#">Electricians</a></li>
+                                  <li class="item-list-item"><a href="#">Offices</a></li>
+                                  <li class="item-list-item"><a href="#">Retail</a></li>
+                                  <li class="item-list-item"><a href="#">View all</a></li>
+                              </ul>
+                          </li>
+                          <li class="item-list-item"><a href="#">Personality</a>
+                              <ul class="item-list">
+                                  <li class="item-list-item"><a href="#">Dog Lover</a></li>
+                                  <li class="item-list-item"><a href="#">Cat Lover</a></li>
+                                  <li class="item-list-item"><a href="#">Chocolate &amp; Food</a></li>
+                                  <li class="item-list-item"><a href="#">Horses</a></li>
+                                  <li class="item-list-item"><a href="#">Barking Mad</a></li>
+                                  <li class="item-list-item"><a href="#">Beauty Queen</a></li>
+                                  <li class="item-list-item"><a href="#">Chocoholic</a></li>
+                                  <li class="item-list-item"><a href="#">Frozen Fan</a></li>
+                              </ul>
+                          </li>
+                      </ul>
+                  </li>
+              </ul>
+          </li>
+      </ul>
+</nav>
+
+
+</body>
+</html>
