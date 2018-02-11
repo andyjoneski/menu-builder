@@ -34,9 +34,6 @@
         },
 
         _init: function(){
-            if(this.options.openDefault) {
-                //this.activateNav($(this.options.openDefaultSelector, this.element));
-            }
 
             this._addEvents()
         },
@@ -47,13 +44,16 @@
 
         _addEvents: function(){
             var self = this;
+            var item = this._getTriggerSelector();
 
             var events = {};
+
 
             events["click " + this._getTriggerSelector()] = function(ev){
                 ev.preventDefault();
                 this.activateNav($(ev.target));
             };
+
 
             this._on(this.element, events);
         },
@@ -83,10 +83,6 @@
 
         _removeDisplayStyles: function(){
             this._deactivateAllItems();
-
-            /*$(this.options.navItemSelector, this.element)
-                .removeClass(this.options.navItemHiddenClass)
-                .attr('style', '');*/
         },
 
        _deactivateAllItems: function(){
@@ -95,11 +91,9 @@
                 .stop()
                 .removeClass(this.options.activeClass)
                 .removeClass(this.options.hasActiveChildrenClass);
-                console.log('here');
         },
 
         _getAllVisibleNavItems: function(){
-            console.log($(this.options.navItemSelector + ':not(.' + this.options.navItemHiddenClass + ')', this.element));
             return $(this.options.navItemSelector + ':not(.' + this.options.navItemHiddenClass + ')', this.element);
         },
 
